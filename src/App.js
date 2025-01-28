@@ -1,7 +1,14 @@
+import Search from "./components/search/Search";
+
 function App() {
+
+  const handleOnSearchChange = (searchData) => {
+    console.log("Selected City Data:", searchData);
+  };
+
   return (
-    <div className="App">
-      <h1>Welcome to React</h1>
+    <div className="container">
+      <Search onSearchChange={handleOnSearchChange} />
     </div>
   );
 }
