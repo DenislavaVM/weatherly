@@ -1,0 +1,200 @@
+:root {
+  --primary-bg: #f0f2f5;
+  --secondary-bg: #ffffff;
+  --text-color: #333;
+  --text-secondary: #666;
+  --accent-color: #007BFF;
+  --error-color: #e63946;
+}
+
+[data-theme="light"] {
+  --primary-bg: #f4f7fb;
+  --secondary-bg: #ffffff;
+  --text-color: #333;
+  --text-secondary: #666;
+  --accent-color: #007bff;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] {
+  --primary-bg: #1a1a2e;
+  --secondary-bg: #16213e;
+  --text-color: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --accent-color: #1e90ff;
+  --shadow-color: rgba(255, 255, 255, 0.1);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+  background-color: var(--primary-bg);
+  color: var(--text-color);
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+.container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px 30px;
+  box-sizing: border-box;
+}
+
+section {
+  margin-bottom: 40px;
+}
+
+.theme_toggle {
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.3s, transform 0.2s ease-in-out;
+  margin-bottom: 20px;
+  box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.theme_toggle:hover {
+  background-color: var(--text-secondary);
+  transform: scale(1.03);
+}
+
+.theme_toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+[data-theme="dark"] .theme-toggle svg {
+  transform: rotate(180deg);
+}
+
+.fallback_message {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 20px;
+}
+
+.error_message {
+  color: var(--error-color);
+  font-size: 1rem;
+  margin-top: 10px;
+  text-align: center;
+  background: #ffe6e6;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.retry_button {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+}
+
+.retry_button:hover {
+  background-color: #0056b3;
+}
+
+.loading_message {
+  font-size: 1rem;
+  text-align: center;
+  color: #555;
+}
+
+.Toastify__toast {
+  font-family: "Poppins", sans-serif;
+  font-size: 0.9rem;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0px 4px 14px rgba(0, 0, 0, 0.12);
+  margin-top: 15px;
+  transition: transform 0.3s ease-in-out;
+}
+
+.Toastify__toast--success {
+  background-color: #4caf50;
+  color: white;
+  font-weight: 600;
+}
+
+.Toastify__toast--error {
+  background-color: #e63946;
+  color: white;
+  font-weight: 600;
+}
+
+.Toastify__close-button {
+  color: white !important;
+  font-size: 0.8rem;
+}
+
+.Toastify__progress-bar {
+  background: white !important;
+}
+
+@media (min-width: 768px) {
+  .Toastify__toast {
+    font-size: 1rem;
+    padding: 16px 20px;
+    max-width: 400px;
+    border-radius: 14px;
+  }
+
+  .Toastify__toast-container {
+    top: 20px;
+    right: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 15px;
+  }
+
+  section {
+    margin-bottom: 20px;
+  }
+
+  .theme_toggle {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    margin-bottom: 15px;
+    border-radius: 16px;
+  }
+
+  .theme_toggle svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .Toastify__toast {
+    font-size: 0.85rem;
+    padding: 10px 12px;
+    max-width: 280px;
+    border-radius: 10px;
+  }
+
+  .Toastify__toast-container {
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
