@@ -1,23 +1,23 @@
-export const API_CONFIG = {
-    BASE_GEO_API_URL: "https://wft-geo-db.p.rapidapi.com/v1/geo/cities",
-    headers: {
-        "x-rapidapi-key": process.env.REACT_APP_RAPIDAPI_KEY,
-        "x-rapidapi-host": "wft-geo-db.p.rapidapi.com"
-    },
-};
+import { FaExclamationTriangle, FaTimesCircle } from "react-icons/fa";
+import { fetchData } from "./apiClient";
 
 export const fetchCities = async (query) => {
     try {
-        const response = await fetch(
-            `${API_CONFIG.BASE_GEO_API_URL}?minPopulation=1000000&namePrefix=${query}`,
-            { method: "GET", headers: API_CONFIG.headers }
-        );
-        if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
+        const response = await fetchData(`http://localhost:5000/api/cities?query=${query}`);
+
+        if (!response || !Array.isArray(response)) {
+            console.error("Unexpected API response format:", response);
+            throw new Error("Invalid API response structure");
         }
-        return response.json();
+
+
+        if (response.length === 0) {
+            return [{ name: "No Cities Found", countryCode: <FaTimesCircle color="red" /> }];
+        }
+
+        return response;
     } catch (error) {
-        console.error("API fetch error:", error);
-        throw error;
+        console.error("Error in fetchCities:", error);
+        return [{ name: "Failed to Load Cities", countryCode: <FaExclamationTriangle color="orange" /> }];
     }
 };
