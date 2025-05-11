@@ -1,4 +1,3 @@
-import { FaExclamationTriangle, FaTimesCircle } from "react-icons/fa";
 import { fetchData } from "./apiClient";
 
 export const fetchCities = async (query) => {
@@ -10,14 +9,13 @@ export const fetchCities = async (query) => {
             throw new Error("Invalid API response structure");
         }
 
-
         if (response.length === 0) {
-            return [{ name: "No Cities Found", countryCode: <FaTimesCircle color="red" /> }];
+            return [{ name: "No Cities Found", countryCode: "N/A" }];
         }
 
         return response;
     } catch (error) {
         console.error("Error in fetchCities:", error);
-        return [{ name: "Failed to Load Cities", countryCode: <FaExclamationTriangle color="orange" /> }];
+        return [{ name: "Failed to Load Cities", countryCode: "Error" }];
     }
 };
