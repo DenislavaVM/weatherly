@@ -1,0 +1,28 @@
+.spinner__overlay {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 0;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .spinner__overlay {
+        padding: 60px 0;
+    }
+}
+
+.spinner__circle {
+    border: 5px solid var(--secondary-bg);
+    border-top: 5px solid var(--accent-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AsyncPaginate } from "react-select-async-paginate";
 import { fetchCities } from "../../api/geoApi";
 import styles from "./Search.module.css";
+import Spinner from "../ui/Spinner";
 
 const Search = ({ onSearchChange }) => {
     const [search, setSearch] = useState(null);
@@ -52,7 +53,8 @@ const Search = ({ onSearchChange }) => {
                 loadOptions={loadOptions}
                 noOptionsMessage={() => "No cities found"}
             />
-            {loading && <div className={styles.spinner}></div>}
+
+            {loading && <Spinner />}
             {error && <div className="error-message">{error}</div>}
         </div>
     );

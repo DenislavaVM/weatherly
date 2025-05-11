@@ -1,5 +1,6 @@
 import Search from "./components/search/Search";
 import CurrentWeather from "./components/currentWeather/CurrentWeather";
+import Spinner from "./components/ui/Spinner";
 import useFetchWeather from "./hooks/useFetchWeather";
 import { useEffect, useState } from "react";
 import Forecast from "./components/forecast/Forecast";
@@ -73,8 +74,7 @@ function App() {
           )}
         </div>
       )}
-
-      {loading && <p className="loading_message">Fetching weather data...</p>}
+      {loading && <Spinner />}
 
       <section style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
         {currentWeather && <CurrentWeather data={currentWeather} />}
