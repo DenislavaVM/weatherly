@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaChevronDown, FaChevronUp } from "react-icons/fa"; // Import icons
+import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import styles from "./Forecast.module.css";
 
 const WEEK_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -13,6 +13,7 @@ const Forecast = ({ data }) => {
 
     const dayInWeek = new Date().getDay();
     const forecastDays = WEEK_DAYS.slice(dayInWeek, WEEK_DAYS.length).concat(WEEK_DAYS.slice(0, dayInWeek));
+    const dailyForecasts = data.list.filter(item => item.dt_txt.includes("12:00:00")).slice(0, 5);
 
     const toggleDetails = (index) => {
         setOpenIndex(openIndex === index ? null : index);
@@ -20,9 +21,9 @@ const Forecast = ({ data }) => {
 
     return (
         <>
-            <label className={styles.forecast__title}>7-Day Forecast</label>
+            <label className={styles.forecast__title}>5-Day Forecast</label>
             <div className={styles.forecast__grid_desktop}>
-                {data.list.slice(0, 7).map((item, index) => (
+                {dailyForecasts.map((item, index) => (
                     <div
                         key={index}
                         className={`${styles.forecast__list_item} ${openIndex === index ? styles.active : ""}`}
@@ -63,7 +64,7 @@ const Forecast = ({ data }) => {
                                 </div>
                                 <div className={styles.forecast__details_item}>
                                     <label>Sea Level:</label>
-                                    <label>{item.main.sea_level || 'N/A'} m</label>
+                                    <label>{item.main.sea_level || "N/A"} m</label>
                                 </div>
                                 <div className={styles.forecast__details_item}>
                                     <label>Feels Like:</label>
