@@ -1,4 +1,5 @@
 import styles from "./CurrentWeather.module.css";
+import { format } from "date-fns";
 
 const CurrentWeather = ({ data }) => {
 
@@ -11,10 +12,13 @@ const CurrentWeather = ({ data }) => {
             <div className={styles.weather__top}>
                 <div>
                     <p className={styles.weather__city}>{data.city}</p>
+                    <p className={styles.weather__date}>
+                        {format(new Date(), "EEEE, MMMM d")}
+                    </p>
                     <p className={styles.weather__description}>{data.weather[0].description}</p>
                 </div>
                 <img
-                    alt="weather"
+                    alt={`Weather icon showing ${data.weather[0].description}`}
                     className={styles.weather__icon}
                     src={`https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`}
                 />

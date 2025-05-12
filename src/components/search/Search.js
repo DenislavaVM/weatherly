@@ -37,6 +37,10 @@ const Search = ({ onSearchChange }) => {
     };
 
     const handleOnChange = (searchData) => {
+        if (!searchData) {
+            return;
+        };
+
         setError(null);
         setSearch(searchData);
         onSearchChange(searchData);
@@ -46,16 +50,17 @@ const Search = ({ onSearchChange }) => {
         <div className={styles.search_container}>
             <AsyncPaginate
                 className={styles.search_input}
-                placeholder={loading ? "Loading cities..." : "Search for a city"}
+                placeholder="Search for a city"
                 debounceTimeout={300}
                 value={search}
                 onChange={handleOnChange}
                 loadOptions={loadOptions}
                 noOptionsMessage={() => "No cities found"}
+                aria-label="Search for a city"
             />
 
             {loading && <Spinner />}
-            {error && <div className="error-message">{error}</div>}
+            {error && <div className="error_message">{error}</div>}
         </div>
     );
 };

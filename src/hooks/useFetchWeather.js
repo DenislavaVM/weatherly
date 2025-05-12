@@ -25,18 +25,19 @@ const useFetchWeather = () => {
             if (err.response) {
                 if (err.response.status === 404) {
                     errorMessage = "City not found. Please try another city.";
-                } else if (err.response.status === 429) {
+                } else if (err?.response?.status === 429) {
                     errorMessage = "API request limit exceeded. Try again later.";
                 } else {
                     errorMessage = "Error fetching data. Please try again.";
                 }
-            } else if (err.request) {
+            } else if (err?.request) {
                 errorMessage = "Network issue. Check your connection.";
             }
 
             setError(errorMessage);
             toast.error(errorMessage, { position: "top-right" });
-            console.error("API Error:", err);
+            const level = err?.response ? "warn" : "error";
+            console[level]("API Error:", err);
             return { error: errorMessage };
         }
     };

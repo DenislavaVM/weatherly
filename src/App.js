@@ -8,6 +8,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { FaSun, FaMoon } from "react-icons/fa";
 import "react-toastify/dist/ReactToastify.css";
 import "./global.css";
+import SkeletonCard from "./components/ui/SkeletonCard";
 
 function App() {
   const [currentWeather, setCurrentWeather] = useState(null);
@@ -38,6 +39,7 @@ function App() {
 
     if (response.error) {
       toast.error(response.error, { position: "top-right" });
+      return;
     };
 
     toast.success(`Weather data for ${searchData.label} loaded successfully!`, { position: "top-right" });
@@ -74,7 +76,13 @@ function App() {
           )}
         </div>
       )}
-      {loading && <Spinner />}
+
+      {loading && (
+        <>
+          <SkeletonCard />
+          <SkeletonCard />
+        </>
+      )}
 
       <section style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
         {currentWeather && <CurrentWeather data={currentWeather} />}

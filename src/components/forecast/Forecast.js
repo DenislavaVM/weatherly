@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { format, parseISO } from "date-fns";
 import styles from "./Forecast.module.css";
-
-const WEEK_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 const Forecast = ({ data }) => {
     const [openIndex, setOpenIndex] = useState(null);
@@ -11,9 +10,19 @@ const Forecast = ({ data }) => {
         return <p className="error_message">Forecast data unavailable.</p>;
     }
 
-    const dayInWeek = new Date().getDay();
-    const forecastDays = WEEK_DAYS.slice(dayInWeek, WEEK_DAYS.length).concat(WEEK_DAYS.slice(0, dayInWeek));
-    const dailyForecasts = data.list.filter(item => item.dt_txt.includes("12:00:00")).slice(0, 5);
+    const grouped = data.list.reduce((acc, entry) => {
+        const date = format(parseISO(entry.dt_txt), "yyyy-MM-dd");
+        if (!acc[date]) acc[date] = [];
+        acc[date].push(entry);
+        return acc;
+    }, {});
+
+    const dailyForecasts = Object.entries(grouped)
+        .map(([date, items]) => ({
+            date,
+            item: items[Math.floor(items.length / 2)],
+        }))
+        .slice(0, 5);
 
     const toggleDetails = (index) => {
         setOpenIndex(openIndex === index ? null : index);
@@ -23,19 +32,24 @@ const Forecast = ({ data }) => {
         <>
             <label className={styles.forecast__title}>5-Day Forecast</label>
             <div className={styles.forecast__grid_desktop}>
-                {dailyForecasts.map((item, index) => (
+                {dailyForecasts.map(({ date, item }, index) => (
                     <div
-                        key={index}
+                        key={date}
                         className={`${styles.forecast__list_item} ${openIndex === index ? styles.active : ""}`}
                         onClick={() => toggleDetails(index)}
+                        role="button"
+                        aria-expanded={openIndex === index}
+                        tabIndex={0}
                     >
                         <div className={styles.forecast__compact}>
                             <img
-                                alt="weather"
+                                alt={`Weather icon showing ${item.weather[0].description}`}
                                 className={styles.forecast__icon_small}
                                 src={`https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`}
                             />
-                            <span className={styles.forecast__day}>{forecastDays[index]}</span>
+                            <span className={styles.forecast__day}>
+                                {format(parseISO(item.dt_txt), "EEEE, MMM d")}
+                            </span>
                             <span className={styles.forecast__temperature_range}>
                                 {Math.round(item.main.temp_min)}°C / {Math.round(item.main.temp_max)}°C
                             </span>

@@ -9,6 +9,13 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+const handleError = (res, error, fallbackMessage) => {
+    console.error(error.message || error);
+    const status = error?.response?.status || 500;
+    const message = error?.response?.data?.message || fallbackMessage;
+    res.status(status).json({ error: message });
+};
+
 app.get("/api/weather", async (req, res) => {
     const { lat, lon } = req.query;
     if (!lat || !lon) {
@@ -27,7 +34,7 @@ app.get("/api/weather", async (req, res) => {
 
         res.json(response.data);
     } catch (error) {
-        res.status(500).json({ error: "Failed to fetch weather data" });
+        handleError(res, error, "Failed to fetch weather data");
     }
 });
 
@@ -49,7 +56,7 @@ app.get("/api/forecast", async (req, res) => {
 
         res.json(response.data);
     } catch (error) {
-        res.status(500).json({ error: "Failed to fetch forecast data" });
+        handleError(res, error, "Failed to fetch forecast data");
     }
 });
 
@@ -66,23 +73,19 @@ app.get("/api/cities", async (req, res) => {
                 "x-rapidapi-host": "wft-geo-db.p.rapidapi.com",
             },
             params: {
-                minPopulation: 1000000,
                 namePrefix: query,
+                minPopulation: 1000000,
+                limit: 10,
             },
         });
 
         if (!response.data || !Array.isArray(response.data.data)) {
-            console.error("Invalid API response format", response.data);
             return res.status(500).json({ error: "Unexpected API response format" });
         }
 
         res.json(response.data.data);
     } catch (error) {
-        console.error("Error fetching city data:", error.message);
-        if (error.response && error.response.status === 429) {
-            return res.status(429).json({ error: "API Limit Reached. Try again later." });
-        }
-        res.status(500).json({ error: "Failed to fetch city data" });
+        handleError(res, error, "Failed to fetch city data");
     }
 });
 
