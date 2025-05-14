@@ -1,9 +1,11 @@
 import { fetchData } from "./apiClient";
 
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
+
 export const fetchWeatherData = async (lat, lon) => {
-    return fetchData(`http://localhost:5000/api/weather?lat=${lat}&lon=${lon}`);
+    return fetchData(`${BASE_URL}/api/weather?lat=${lat}&lon=${lon}`);
 };
 
 export const fetchForecastData = async (lat, lon) => {
-    return fetchData(`http://localhost:5000/api/forecast?lat=${lat}&lon=${lon}`);
+    return fetchData(`${BASE_URL}/api/forecast?lat=${lat}&lon=${lon}`);
 };
