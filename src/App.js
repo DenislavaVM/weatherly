@@ -9,6 +9,7 @@ import { FaSun, FaMoon } from "react-icons/fa";
 import "react-toastify/dist/ReactToastify.css";
 import "./global.css";
 import SkeletonCard from "./components/ui/SkeletonCard";
+import ThemeToggle from "./components/ui/ThemeToggle";
 
 function App() {
   const [currentWeather, setCurrentWeather] = useState(null);
@@ -32,7 +33,11 @@ function App() {
 
 
   const handleOnSearchChange = async (searchData) => {
-    const [lat, lon] = searchData.value.split(" ");
+    const [lat, lon] = searchData?.value?.split(" ") || [];
+    if (!lat || !lon) {
+      return;
+    };
+
     setLastSearch(searchData);
 
     const response = await fetchWeather(lat, lon);
@@ -52,10 +57,7 @@ function App() {
       <ToastContainer autoClose={4000} hideProgressBar closeOnClick />
 
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <button className="theme_toggle" onClick={toggleDarkMode}>
-          {darkMode ? <FaSun size={18} /> : <FaMoon size={18} />}
-          {darkMode ? " Light Mode" : " Dark Mode"}
-        </button>
+        <ThemeToggle darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
       </div>
 
       <section>
