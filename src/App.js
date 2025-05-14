@@ -10,6 +10,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "./global.css";
 import SkeletonCard from "./components/ui/SkeletonCard";
 import ThemeToggle from "./components/ui/ThemeToggle";
+import Header from "./components/layout/Header";
 
 function App() {
   const [currentWeather, setCurrentWeather] = useState(null);
@@ -55,45 +56,48 @@ function App() {
   return (
     <div className="container">
       <ToastContainer autoClose={4000} hideProgressBar closeOnClick />
+      <Header />
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <ThemeToggle darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-      </div>
-
-      <section>
-        <Search onSearchChange={handleOnSearchChange} />
-      </section>
-
-      {!currentWeather && !forecast && !error && (
-        <p className="fallback_message">Search for a city to view the weather.</p>
-      )}
-
-      {error && (
-        <div className="error_message">
-          <p>{error}</p>
-          {lastSearch && (
-            <button className="retry_button" onClick={() => handleOnSearchChange(lastSearch)}>
-              Retry
-            </button>
-          )}
+      <main className="main_content">
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <ThemeToggle darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
         </div>
-      )}
 
-      {loading && (
-        <>
-          <SkeletonCard />
-          <SkeletonCard />
-        </>
-      )}
+        <section>
+          <Search onSearchChange={handleOnSearchChange} />
+        </section>
 
-      <section style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-        {currentWeather && <CurrentWeather data={currentWeather} />}
-        {forecast && (
-          <div className="forecast__grid">
-            <Forecast data={forecast} />
+        {!currentWeather && !forecast && !error && (
+          <p className="fallback_message">Search for a city to view the weather.</p>
+        )}
+
+        {error && (
+          <div className="error_message">
+            <p>{error}</p>
+            {lastSearch && (
+              <button className="retry_button" onClick={() => handleOnSearchChange(lastSearch)}>
+                Retry
+              </button>
+            )}
           </div>
         )}
-      </section>
+
+        {loading && (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        )}
+
+        <section style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+          {currentWeather && <CurrentWeather data={currentWeather} />}
+          {forecast && (
+            <div className="forecast__grid">
+              <Forecast data={forecast} />
+            </div>
+          )}
+        </section>
+      </main>
     </div>
   );
 }

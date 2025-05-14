@@ -45,6 +45,13 @@ body {
   box-sizing: border-box;
 }
 
+.main_content {
+  min-height: calc(100vh - 300px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 section {
   margin-bottom: 40px;
 }
