@@ -8,12 +8,12 @@
 }
 
 [data-theme="light"] {
-  --primary-bg: #0e1117;
-  --secondary-bg: #161b22;
-  --text-color: #ffffff;
-  --text-secondary: #cccccc;
-  --accent-color: #1e90ff;
-  --shadow-color: rgba(0, 0, 0, 0.4);
+  --primary-bg: #f4f7fb;
+  --secondary-bg: #ffffff;
+  --text-color: #333;
+  --text-secondary: #666;
+  --accent-color: #007bff;
+  --shadow-color: rgba(0, 0, 0, 0.1);
 }
 
 [data-theme="dark"] {
