@@ -89,4 +89,8 @@ app.get("/api/cities", async (req, res) => {
     }
 });
 
+app.get("/", (req, res) => {
+  res.send("Weatherly API is running. Visit the frontend at https://weatherly-tau-three.vercel.app/");
+});
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
