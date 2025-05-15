@@ -4,6 +4,40 @@ import { fetchCities } from "../../api/geoApi";
 import styles from "./Search.module.css";
 import Spinner from "../ui/Spinner";
 
+const customStyles = {
+    control: (base, state) => ({
+        ...base,
+        backgroundColor: "var(--secondary-bg)",
+        color: "var(--text-color)",
+        borderColor: state.isFocused ? "var(--accent-color)" : "var(--text-secondary)",
+        boxShadow: state.isFocused ? "0 0 0 2px var(--accent-color)" : "none",
+    }),
+    menu: (base) => ({
+        ...base,
+        backgroundColor: "var(--secondary-bg)",
+        color: "var(--text-color)",
+        zIndex: 100,
+    }),
+    option: (base, state) => ({
+        ...base,
+        backgroundColor: state.isFocused ? "rgba(30, 144, 255, 0.1)" : "transparent",
+        color: "var(--text-color)",
+        cursor: "pointer",
+    }),
+    input: (base) => ({
+        ...base,
+        color: "var(--text-color)",
+    }),
+    singleValue: (base) => ({
+        ...base,
+        color: "var(--text-color)",
+    }),
+    placeholder: (base) => ({
+        ...base,
+        color: "var(--text-secondary)",
+    }),
+};
+
 const Search = ({ onSearchChange }) => {
     const [search, setSearch] = useState(null);
     const [error, setError] = useState(null);
@@ -57,6 +91,7 @@ const Search = ({ onSearchChange }) => {
                 loadOptions={loadOptions}
                 noOptionsMessage={() => "No cities found"}
                 aria-label="Search for a city"
+                styles={customStyles}
             />
 
             {loading && <Spinner />}
