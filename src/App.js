@@ -56,13 +56,9 @@ function App() {
   return (
     <div className="container">
       <ToastContainer autoClose={4000} hideProgressBar closeOnClick />
-      <Header />
+      <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
 
       <main className="main_content">
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <ThemeToggle darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-        </div>
-
         <section>
           <Search onSearchChange={handleOnSearchChange} />
         </section>
