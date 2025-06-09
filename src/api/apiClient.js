@@ -1,14 +1,17 @@
-export const fetchData = async (url, options = {}) => {
+export const fetchData = async (url, options = {}, retries = 2) => {
     try {
         const response = await fetch(url, options);
 
-        if (!response || !response.ok) {
-            throw new Error(`API error: ${response?.status || "Unknown"} - ${response?.statusText || "No response"}`);
-        }
+        if (!response.ok) {
+            throw new Error("API Error");
+        };
 
         return await response.json();
     } catch (error) {
-        console.error("API fetch error:", error);
+        if (retries > 0) {
+            await new Promise(res => setTimeout(res, 1000));
+            return fetchData(url, options, retries - 1);
+        };
         throw error;
-    }
+    };
 };
