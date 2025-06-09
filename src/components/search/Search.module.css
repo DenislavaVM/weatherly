@@ -1,12 +1,14 @@
 .search_container {
     width: 100%;
     max-width: 500px;
-    margin: 20px auto;
-    padding: 14px;
+    margin: 30px auto;
+    padding: 16px;
     border-radius: 12px;
     background-color: var(--secondary-bg);
     box-shadow: 0px 4px 12px var(--shadow-color);
-    transition: box-shadow 0.3s;
+    transition: box-shadow 0.3s ease-in-out;
+    position: relative;
+    z-index: 1;
 }
 
 .search_container:hover {
@@ -44,6 +46,21 @@
     text-align: center;
     margin-top: 5px;
 }
+
+.select__menu-list {
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-color) transparent;
+}
+
+.select__menu-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.select__menu-list::-webkit-scrollbar-thumb {
+    background-color: var(--accent-color);
+    border-radius: 10px;
+}
+
 
 @media (max-width: 768px) {
     .search_container {

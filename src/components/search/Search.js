@@ -11,17 +11,37 @@ const customStyles = {
         color: "var(--text-color)",
         borderColor: state.isFocused ? "var(--accent-color)" : "var(--text-secondary)",
         boxShadow: state.isFocused ? "0 0 0 2px var(--accent-color)" : "none",
+        borderRadius: "8px",
+        padding: "2px 4px",
+        transition: "all 0.2s ease-in-out",
     }),
     menu: (base) => ({
         ...base,
         backgroundColor: "var(--secondary-bg)",
         color: "var(--text-color)",
         zIndex: 100,
+        borderRadius: "10px",
+        boxShadow: "0 10px 20px rgba(0, 0, 0, 0.25)",
+        marginTop: "8px",
+        width: "100%",
+        left: "50%",
+        transform: "translateX(-50%)",
+    }),
+    menuList: (base) => ({
+        ...base,
+        padding: 0,
+        maxHeight: "250px",
+        overflowY: "auto",
     }),
     option: (base, state) => ({
         ...base,
-        backgroundColor: state.isFocused ? "rgba(30, 144, 255, 0.1)" : "transparent",
+        backgroundColor: state.isFocused
+            ? "rgba(30, 144, 255, 0.15)"
+            : "transparent",
         color: "var(--text-color)",
+        padding: "12px 16px",
+        fontSize: "0.95rem",
+        transition: "background 0.2s ease-in-out",
         cursor: "pointer",
     }),
     input: (base) => ({
@@ -84,6 +104,7 @@ const Search = ({ onSearchChange }) => {
         <div className={styles.search_container}>
             <AsyncPaginate
                 className={styles.search_input}
+                classNamePrefix="select"
                 placeholder="Search for a city"
                 debounceTimeout={300}
                 value={search}
