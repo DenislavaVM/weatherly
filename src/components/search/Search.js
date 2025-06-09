@@ -60,6 +60,7 @@ const customStyles = {
 
 const Search = ({ onSearchChange }) => {
     const [search, setSearch] = useState(null);
+    const [menuOpen, setMenuOpen] = useState(false);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
 
@@ -92,12 +93,15 @@ const Search = ({ onSearchChange }) => {
 
     const handleOnChange = (searchData) => {
         if (!searchData) {
+            setSearch(null);
+            onSearchChange(null);
             return;
         };
 
         setError(null);
         setSearch(searchData);
         onSearchChange(searchData);
+        setMenuOpen(false);
     };
 
     return (
@@ -113,6 +117,12 @@ const Search = ({ onSearchChange }) => {
                 noOptionsMessage={() => "No cities found"}
                 aria-label="Search for a city"
                 styles={customStyles}
+                isClearable={true}
+                menuIsOpen={menuOpen}
+                onInputChange={(value) => {
+                    setMenuOpen(value.length > 0);
+                    return value;
+                }}
             />
 
             {loading && <Spinner />}
