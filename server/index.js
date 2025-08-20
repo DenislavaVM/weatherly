@@ -15,33 +15,43 @@ const allowedOrigins = new Set([
 
 const vercelPreview = /^https?:\/\/([a-z0-9-]+\.)*vercel\.app$/i;
 
-if (process.env.NODE_ENV === "production") {
-    app.use(
-        cors({
-            origin(origin, callback) {
-                if (!origin) return callback(null, true);
+app.use((req, _res, next) => {
+    console.log("[CORS] Origin:", req.headers.origin, "Path:", req.path);
+    next();
+});
 
-                if (allowedOrigins.has(origin) || vercelPreview.test(origin)) {
-                    return callback(null, true);
-                }
+const corsOptionsDelegate = (req, callback) => {
+    const origin = req.header("Origin");
 
-                return callback(null, false);
-            },
+    if (!origin) {
+        return callback(null, {
+            origin: true,
             methods: ["GET", "OPTIONS"],
-            optionsSuccessStatus: 204,
+            allowedHeaders: ["Content-Type", "Authorization"],
             maxAge: 86400,
-        }),
-    );
-} else {
-    app.use(cors({ origin: true }));
+            optionsSuccessStatus: 204,
+        });
+    };
+
+    const isAllowed = allowedOrigins.has(origin) || vercelPreview.test(origin);
+    callback(null, {
+        origin: isAllowed ? origin : false,
+        methods: ["GET", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+        credentials: false,
+        maxAge: 86400,
+        optionsSuccessStatus: 204,
+    });
 };
 
-app.options("*", cors());
+app.use(cors(corsOptionsDelegate));
+app.options("/api/*", cors(corsOptionsDelegate));
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../build")));
 
 const handleError = (res, error, fallbackMessage) => {
-    console.error(error.message || error);
+    console.error(error?.message || error);
     const status = error?.response?.status || 500;
     const message = error?.response?.data?.message || fallbackMessage;
     res.status(status).json({ error: message });
@@ -54,11 +64,11 @@ app.get("/api/weather", async (req, res) => {
     }
 
     try {
-        const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather`, {
+        const response = await axios.get("https://api.openweathermap.org/data/2.5/weather", {
             params: {
                 lat,
                 lon,
-                units: (units === "imperial" ? "imperial" : "metric"),
+                units: units === "imperial" ? "imperial" : "metric",
                 appid: process.env.OPENWEATHER_API_KEY,
             },
         });
@@ -76,11 +86,11 @@ app.get("/api/forecast", async (req, res) => {
     }
 
     try {
-        const response = await axios.get(`https://api.openweathermap.org/data/2.5/forecast`, {
+        const response = await axios.get("https://api.openweathermap.org/data/2.5/forecast", {
             params: {
                 lat,
                 lon,
-                units: (units === "imperial" ? "imperial" : "metric"),
+                units: units === "imperial" ? "imperial" : "metric",
                 appid: process.env.OPENWEATHER_API_KEY,
             },
         });
@@ -98,7 +108,7 @@ app.get("/api/cities", async (req, res) => {
     }
 
     try {
-        const response = await axios.get(`https://wft-geo-db.p.rapidapi.com/v1/geo/cities`, {
+        const response = await axios.get("https://wft-geo-db.p.rapidapi.com/v1/geo/cities", {
             headers: {
                 "x-rapidapi-key": process.env.RAPIDAPI_KEY,
                 "x-rapidapi-host": "wft-geo-db.p.rapidapi.com",
@@ -121,7 +131,9 @@ app.get("/api/cities", async (req, res) => {
 });
 
 app.get("/", (req, res) => {
-    res.send("Weatherly API is running. Visit the frontend at https://weatherly-tau-three.vercel.app/");
+    res.send(
+        "Weatherly API is running. Visit the frontend at https://weatherly-tau-three.vercel.app/"
+    );
 });
 
 app.get("*", (req, res) => {
