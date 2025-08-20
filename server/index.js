@@ -7,12 +7,11 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-const allowedOrigins = [
+const allowedOrigins = new Set([
     "https://weatherly-tau-three.vercel.app",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-];
-
+]);
 
 const vercelPreview = /^https?:\/\/([a-z0-9-]+\.)*vercel\.app$/i;
 
@@ -20,25 +19,24 @@ if (process.env.NODE_ENV === "production") {
     app.use(
         cors({
             origin(origin, callback) {
-                if (!origin) {
-                    return callback(null, true);
-                };
+                if (!origin) return callback(null, true);
 
-                if (allowedOrigins.includes(origin) || vercelPreview.test(origin)) {
+                if (allowedOrigins.has(origin) || vercelPreview.test(origin)) {
                     return callback(null, true);
-                };
+                }
 
-                return callback(new Error("Not allowed by CORS"));
+                return callback(null, false);
             },
-            methods: ["GET"],
+            methods: ["GET", "OPTIONS"],
             optionsSuccessStatus: 204,
             maxAge: 86400,
-        })
+        }),
     );
 } else {
     app.use(cors({ origin: true }));
 };
 
+app.options("*", cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../build")));
 
