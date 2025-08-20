@@ -95,7 +95,6 @@ function App() {
       toast.error("Geolocation is not supported by your browser.", { position: "top-right" });
       return;
     }
-
     if (!window.isSecureContext && window.location.hostname !== "localhost") {
       toast.error("Geolocation requires HTTPS. Open the site over https://", { position: "top-right" });
       return;
@@ -103,21 +102,17 @@ function App() {
 
     let settled = false;
     let ipTried = false;
-    let hiAccTried = false;
 
     const finishWithCoords = async (coords, source) => {
       if (settled) return;
       settled = true;
-
       const { latitude, longitude } = coords;
       console.log(`[geo] using coords from ${source}:`, { latitude, longitude });
-
       const response = await fetchWeather(latitude, longitude, units);
       if (response?.error) {
         toast.error(response.error, { position: "top-right" });
         return;
       }
-
       const resolvedCity = response.currentWeather?.name || "Current location";
       toast.success(`Weather data for ${resolvedCity} loaded successfully!`, { position: "top-right" });
       setCurrentWeather({ city: resolvedCity, ...response.currentWeather });
@@ -131,7 +126,7 @@ function App() {
       try {
         const res = await fetch("https://ipapi.co/json/");
         const data = await res.json();
-        if (data && data.latitude && data.longitude) {
+        if (data?.latitude && data?.longitude) {
           toast.info("Using approximate location (by IP).", { position: "top-right" });
           return finishWithCoords({ latitude: data.latitude, longitude: data.longitude }, "ip");
         }
@@ -143,33 +138,37 @@ function App() {
       }
     };
 
-    const tryHighAccuracy = () => {
-      if (settled || hiAccTried) return;
-      hiAccTried = true;
-      navigator.geolocation.getCurrentPosition(
-        (pos) => finishWithCoords(pos.coords, "device-hiacc"),
-        (err) => {
-          console.error("[geo] high-accuracy failed:", { code: err?.code, message: err?.message || "" });
-          ipFallback();
-        },
-        { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
-      );
-    };
-
-    const onCoarseError = (err) => {
-      console.error("Geolocation error (coarse):", { code: err?.code, message: err?.message || "" });
-      tryHighAccuracy();
+    const explainAndMaybeFallback = (err, phase) => {
+      const code = err?.code;
+      const nice =
+        code === 1 ? "Location permission denied."
+          : code === 2 ? "Unable to determine your position (no GPS/Wi-Fi fix)."
+            : code === 3 ? "Getting your location timed out."
+              : "Failed to get your location.";
+      console.error(`[geo] ${phase} failed:`, { code, message: err?.message || "" });
+      if (code === 1) {
+        toast.error(`${nice} Enable location for this site in your browser settings.`, { position: "top-right" });
+        return;
+      }
+      ipFallback();
     };
 
     navigator.geolocation.getCurrentPosition(
       (pos) => finishWithCoords(pos.coords, "device-coarse"),
-      onCoarseError,
+      (err) => {
+        explainAndMaybeFallback(err, "coarse");
+        if (err?.code !== 1) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => finishWithCoords(pos.coords, "device-hiacc"),
+            (e2) => explainAndMaybeFallback(e2, "high-accuracy"),
+            { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+          );
+        }
+      },
       { enableHighAccuracy: false, timeout: 12000, maximumAge: 600000 }
     );
 
-    setTimeout(() => {
-      if (!settled) ipFallback();
-    }, 25000);
+    setTimeout(() => { if (!settled) ipFallback(); }, 30000);
   };
 
   return (
