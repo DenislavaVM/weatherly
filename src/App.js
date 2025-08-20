@@ -9,6 +9,8 @@ import "./global.css";
 import SkeletonCard from "./components/ui/SkeletonCard";
 import Header from "./components/layout/Header";
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "";
+
 function App() {
   const [currentWeather, setCurrentWeather] = useState(null);
   const [forecast, setForecast] = useState(null);
@@ -38,6 +40,10 @@ function App() {
       darkMode ? "dark" : "light"
     );
   }, [darkMode]);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/health`).catch(() => { });
+  }, []);
 
   const handleOnSearchChange = async (searchData, unitsOverride = units) => {
     const [lat, lon] = searchData?.value?.split(" ") || [];

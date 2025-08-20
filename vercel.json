@@ -1,0 +1,8 @@
+{
+    "rewrites": [
+        {
+            "source": "/api/(.*)",
+            "destination": "https://weatherly-x2x7.onrender.com/api/$1"
+        }
+    ]
+}

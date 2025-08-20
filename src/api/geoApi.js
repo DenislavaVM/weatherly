@@ -4,7 +4,7 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 export const fetchCities = async (query, signal) => {
     try {
-        const response = await fetchData(`${BASE_URL}/api/cities?query=${encodeURIComponent(query)}`, {}, 2, signal);
+        const response = await fetchData(`${BASE_URL}/api/cities?query=${encodeURIComponent(query)}`, {}, 6, signal, 800);
 
         if (!response || !Array.isArray(response)) {
             console.error("Unexpected API response format:", response);
