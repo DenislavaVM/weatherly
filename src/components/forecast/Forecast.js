@@ -3,7 +3,7 @@ import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { format, parseISO } from "date-fns";
 import styles from "./Forecast.module.css";
 
-const Forecast = ({ data }) => {
+const Forecast = ({ data, unitSymbol = "°C", units = "metric" }) => {
     const [openIndex, setOpenIndex] = useState(null);
 
     if (!data || !data.list || !Array.isArray(data.list)) {
@@ -64,7 +64,7 @@ const Forecast = ({ data }) => {
                                 {format(parseISO(item.dt_txt), "EEEE, MMM d")}
                             </span>
                             <span className={styles.forecast__temperature_range}>
-                                {Math.round(min)}°C / {Math.round(max)}°C
+                                {Math.round(min)}{unitSymbol} / {Math.round(max)}{unitSymbol}
                             </span>
                             <span className={styles.forecast__toggle_icon}>
                                 {openIndex === index ? <FaChevronUp /> : <FaChevronDown />}
@@ -90,7 +90,9 @@ const Forecast = ({ data }) => {
                                 </div>
                                 <div className={styles.forecast__details_item}>
                                     <label>Wind Speed:</label>
-                                    <label>{item.wind.speed} m/s</label>
+                                    <label>
+                                        {item.wind.speed} {units === "imperial" ? "mph" : "m/s"}
+                                    </label>
                                 </div>
                                 <div className={styles.forecast__details_item}>
                                     <label>Sea Level:</label>
@@ -98,7 +100,7 @@ const Forecast = ({ data }) => {
                                 </div>
                                 <div className={styles.forecast__details_item}>
                                     <label>Feels Like:</label>
-                                    <label>{Math.round(item.main.feels_like)}°C</label>
+                                    <label>{Math.round(item.main.feels_like)}{unitSymbol}</label>
                                 </div>
                             </div>
                         )}

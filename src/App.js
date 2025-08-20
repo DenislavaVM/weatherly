@@ -18,6 +18,12 @@ function App() {
     return localStorage.getItem("theme") === "dark";
   });
 
+  const [units, setUnits] = useState(() => {
+    const saved = localStorage.getItem("units");
+    return saved === "imperial" ? "imperial" : "metric";
+  });
+  const unitSymbol = units === "imperial" ? "°F" : "°C";
+
   const toggleDarkMode = () => {
     const newMode = !darkMode;
     setDarkMode(newMode);
@@ -38,16 +44,70 @@ function App() {
 
     setLastSearch(searchData);
 
-    const response = await fetchWeather(lat, lon);
+    const response = await fetchWeather(lat, lon, units);
 
     if (response.error) {
       toast.error(response.error, { position: "top-right" });
       return;
     };
 
-    toast.success(`Weather data for ${searchData.label} loaded successfully!`, { position: "top-right" });
-    setCurrentWeather({ city: searchData.label, ...response.currentWeather });
-    setForecast({ city: searchData.label, ...response.forecast });
+    const resolvedCity =
+      searchData?.label ||
+      response.currentWeather?.name ||
+      "Current location";
+    toast.success(`Weather data for ${resolvedCity} loaded successfully!`, { position: "top-right" });
+    setCurrentWeather({ city: resolvedCity, ...response.currentWeather });
+    setForecast({ city: resolvedCity, ...response.forecast });
+  };
+
+  const handleUseMyLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser.", { position: "top-right" });
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const response = await fetchWeather(latitude, longitude, units);
+        if (response.error) {
+          toast.error(response.error, { position: "top-right" });
+          return;
+        }
+        const resolvedCity = response.currentWeather?.name || "Current location";
+        toast.success(`Weather data for ${resolvedCity} loaded successfully!`, { position: "top-right" });
+        setCurrentWeather({ city: resolvedCity, ...response.currentWeather });
+        setForecast({ city: resolvedCity, ...response.forecast });
+        setLastSearch({ value: `${latitude} ${longitude}`, label: resolvedCity });
+      },
+      (err) => {
+        const msg =
+          err.code === err.PERMISSION_DENIED
+            ? "Location permission denied."
+            : err.code === err.POSITION_UNAVAILABLE
+              ? "Location unavailable."
+              : "Failed to get your location.";
+        toast.error(msg, { position: "top-right" });
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
+  const toggleUnits = () => {
+    const next = units === "metric" ? "imperial" : "metric";
+    setUnits(next);
+    localStorage.setItem("units", next);
+    if (lastSearch?.value) {
+      handleOnSearchChange(lastSearch);
+    } else if (currentWeather?.coord) {
+      const { lat, lon } = currentWeather.coord;
+      fetchWeather(lat, lon, next).then((response) => {
+        if (!response?.error) {
+          const resolvedCity = response.currentWeather?.name || currentWeather?.city || "Current location";
+          setCurrentWeather({ city: resolvedCity, ...response.currentWeather });
+          setForecast({ city: resolvedCity, ...response.forecast });
+        }
+      });
+    }
   };
 
   return (
@@ -58,6 +118,20 @@ function App() {
       <main className="main_content">
         <section>
           <Search onSearchChange={handleOnSearchChange} />
+          <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 12 }}>
+            <button className="retry_button" onClick={handleUseMyLocation} aria-label="Use my location">
+              Use my location
+            </button>
+            <button
+              className="retry_button"
+              onClick={toggleUnits}
+              aria-pressed={units === "imperial"}
+              aria-label="Toggle units"
+              title={`Switch to ${units === "metric" ? "°F / mph" : "°C / m/s"}`}
+            >
+              {units === "metric" ? "°C / m/s" : "°F / mph"}
+            </button>
+          </div>
         </section>
 
         {!currentWeather && !forecast && !error && (
@@ -83,10 +157,10 @@ function App() {
         )}
 
         <section style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-          {currentWeather && <CurrentWeather data={currentWeather} />}
+          {currentWeather && <CurrentWeather data={currentWeather} unitSymbol={unitSymbol} units={units} />}
           {forecast && (
             <div className="forecast__grid">
-              <Forecast data={forecast} />
+              <Forecast data={forecast} unitSymbol={unitSymbol} units={units} />
             </div>
           )}
         </section>

@@ -48,7 +48,7 @@ const handleError = (res, error, fallbackMessage) => {
 };
 
 app.get("/api/weather", async (req, res) => {
-    const { lat, lon } = req.query;
+    const { lat, lon, units } = req.query;
     if (!lat || !lon) {
         return res.status(400).json({ error: "Latitude and longitude are required" });
     }
@@ -58,7 +58,7 @@ app.get("/api/weather", async (req, res) => {
             params: {
                 lat,
                 lon,
-                units: "metric",
+                units: (units === "imperial" ? "imperial" : "metric"),
                 appid: process.env.OPENWEATHER_API_KEY,
             },
         });
@@ -70,7 +70,7 @@ app.get("/api/weather", async (req, res) => {
 });
 
 app.get("/api/forecast", async (req, res) => {
-    const { lat, lon } = req.query;
+    const { lat, lon, units } = req.query;
     if (!lat || !lon) {
         return res.status(400).json({ error: "Latitude and longitude are required" });
     }
@@ -80,7 +80,7 @@ app.get("/api/forecast", async (req, res) => {
             params: {
                 lat,
                 lon,
-                units: "metric",
+                units: (units === "imperial" ? "imperial" : "metric"),
                 appid: process.env.OPENWEATHER_API_KEY,
             },
         });

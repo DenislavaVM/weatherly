@@ -1,11 +1,13 @@
 import styles from "./CurrentWeather.module.css";
 import { format } from "date-fns";
 
-const CurrentWeather = ({ data }) => {
+const CurrentWeather = ({ data, unitSymbol = "°C", units = "metric" }) => {
 
     if (!data || !data.weather || !data.weather[0]) {
         return <p className="error_message">Weather data unavailable.</p>;
-    }
+    };
+
+    const windUnit = units === "imperial" ? "mph" : "m/s";
 
     return (
         <div className={styles.weather}>
@@ -24,18 +26,18 @@ const CurrentWeather = ({ data }) => {
                 />
             </div>
             <div className={styles.weather__bottom}>
-                <p className="weather__temperature">{Math.round(data.main.temp)}°C</p>
+                <p className="weather__temperature">{Math.round(data.main.temp)}{unitSymbol}</p>
                 <div className={styles.weather__details}>
                     <div className={styles.weather__details_row}>
                         <span className={styles.weather__details_label}>Details:</span>
                     </div>
                     <div className={styles.weather__details_row}>
                         <span className={styles.weather__details_label}>Feels like:</span>
-                        <span className={styles.weather__details_value}>{Math.round(data.main.feels_like)}°C</span>
+                        <span className={styles.weather__details_value}>{Math.round(data.main.feels_like)}{unitSymbol}</span>
                     </div>
                     <div className={styles.weather__details_row}>
                         <span className={styles.weather__details_label}>Wind:</span>
-                        <span className={styles.weather__details_value}>{data.wind.speed} m/s</span>
+                        <span className={styles.weather__details_value}>{data.wind.speed} {windUnit}</span>
                     </div>
                     <div className={styles.weather__details_row}>
                         <span className={styles.weather__details_label}>Humidity:</span>

@@ -6,13 +6,13 @@ const useFetchWeather = () => {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    const fetchWeather = async (lat, lon) => {
+    const fetchWeather = async (lat, lon, units = "metric") => {
         setError(null);
         setLoading(true);
         try {
             const [currentWeather, forecast] = await Promise.all([
-                fetchWeatherData(lat, lon),
-                fetchForecastData(lat, lon),
+                fetchWeatherData(lat, lon, units),
+                fetchForecastData(lat, lon, units),
             ]);
 
             setLoading(false);
