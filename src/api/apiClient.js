@@ -1,17 +1,19 @@
-export const fetchData = async (url, options = {}, retries = 2) => {
+export const fetchData = async (url, options = {}, retries = 2, signal) => {
     try {
-        const response = await fetch(url, options);
-
-        if (!response.ok) {
+        const res = await fetch(url, { ...options, signal });
+        if (!res.ok) {
             throw new Error("API Error");
+        }
+        return await res.json();
+    } catch (err) {
+        if (err.name === "AbortError") {
+            throw err;
         };
 
-        return await response.json();
-    } catch (error) {
         if (retries > 0) {
-            await new Promise(res => setTimeout(res, 1000));
-            return fetchData(url, options, retries - 1);
+            await new Promise((r) => setTimeout(r, 500));
+            return fetchData(url, options, retries - 1, signal);
         };
-        throw error;
+        throw err;
     };
 };

@@ -1,15 +1,12 @@
 import Search from "./components/search/Search";
 import CurrentWeather from "./components/currentWeather/CurrentWeather";
-import Spinner from "./components/ui/Spinner";
 import useFetchWeather from "./hooks/useFetchWeather";
 import { useEffect, useState } from "react";
 import Forecast from "./components/forecast/Forecast";
 import { ToastContainer, toast } from "react-toastify";
-import { FaSun, FaMoon } from "react-icons/fa";
 import "react-toastify/dist/ReactToastify.css";
 import "./global.css";
 import SkeletonCard from "./components/ui/SkeletonCard";
-import ThemeToggle from "./components/ui/ThemeToggle";
 import Header from "./components/layout/Header";
 
 function App() {

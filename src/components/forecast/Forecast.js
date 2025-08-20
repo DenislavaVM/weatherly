@@ -37,8 +37,17 @@ const Forecast = ({ data }) => {
                         key={date}
                         className={`${styles.forecast__list_item} ${openIndex === index ? styles.active : ""}`}
                         onClick={() => toggleDetails(index)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                toggleDetails(index);
+                            }
+                        }}
                         role="button"
                         aria-expanded={openIndex === index}
+                        aria-pressed={openIndex === index}
+                        aria-controls={`forecast-details-${index}`}
+                        aria-label={`Toggle forecast details for ${format(parseISO(item.dt_txt), "EEEE, MMM d")}`}
                         tabIndex={0}
                     >
                         <div className={styles.forecast__compact}>
@@ -59,7 +68,10 @@ const Forecast = ({ data }) => {
                         </div>
 
                         {openIndex === index && (
-                            <div className={styles.forecast__details_grid}>
+                            <div
+                                id={`forecast-details-${index}`}
+                                className={styles.forecast__details_grid}
+                            >
                                 <div className={styles.forecast__details_item}>
                                     <label>Pressure:</label>
                                     <label>{item.main.pressure} hPa</label>

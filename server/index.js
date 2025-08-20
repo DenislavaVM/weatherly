@@ -2,12 +2,45 @@ require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+const allowedOrigins = [
+    "https://weatherly-tau-three.vercel.app",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+];
+
+
+const vercelPreview = /^https?:\/\/([a-z0-9-]+\.)*vercel\.app$/i;
+
+if (process.env.NODE_ENV === "production") {
+    app.use(
+        cors({
+            origin(origin, callback) {
+                if (!origin) {
+                    return callback(null, true);
+                };
+
+                if (allowedOrigins.includes(origin) || vercelPreview.test(origin)) {
+                    return callback(null, true);
+                };
+
+                return callback(new Error("Not allowed by CORS"));
+            },
+            methods: ["GET"],
+            optionsSuccessStatus: 204,
+            maxAge: 86400,
+        })
+    );
+} else {
+    app.use(cors({ origin: true }));
+};
+
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "../build")));
 
 const handleError = (res, error, fallbackMessage) => {
     console.error(error.message || error);
@@ -90,7 +123,11 @@ app.get("/api/cities", async (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Weatherly API is running. Visit the frontend at https://weatherly-tau-three.vercel.app/");
+    res.send("Weatherly API is running. Visit the frontend at https://weatherly-tau-three.vercel.app/");
+});
+
+app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../build", "index.html"));
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

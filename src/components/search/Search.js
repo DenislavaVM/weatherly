@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { AsyncPaginate } from "react-select-async-paginate";
+import { useState, useRef } from "react";
 import { fetchCities } from "../../api/geoApi";
 import styles from "./Search.module.css";
 import Spinner from "../ui/Spinner";
@@ -60,20 +59,40 @@ const customStyles = {
 
 const Search = ({ onSearchChange }) => {
     const [search, setSearch] = useState(null);
+    const [AsyncPaginate, setAsyncPaginate] = useState(null);
     const [menuOpen, setMenuOpen] = useState(false);
+    const inputRef = useRef(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
+    const controllerRef = useRef(null);
+
+    const loadAsync = async () => {
+        if (!AsyncPaginate) {
+            const m = await import("react-select-async-paginate");
+            setAsyncPaginate(() => m.AsyncPaginate);
+        };
+        setMenuOpen(true);
+    };
 
     const loadOptions = async (inputValue) => {
         if (!inputValue.trim()) {
+            controllerRef.current?.abort();
             return { options: [] };
-        }
+        };
+
+        controllerRef.current?.abort();
+        const controller = new AbortController();
+        controllerRef.current = controller;
 
         setLoading(true);
         setError(null);
 
         try {
-            const cities = await fetchCities(inputValue);
+            const cities = await fetchCities(inputValue, controller.signal);
+            if (controllerRef.current !== controller) {
+                return { options: [] };
+            };
+
             return {
                 options: cities.map((city) => ({
                     value: city.latitude ? `${city.latitude} ${city.longitude}` : "",
@@ -82,13 +101,18 @@ const Search = ({ onSearchChange }) => {
                 })),
             };
 
-        } catch (error) {
-            console.error("Error loading options:", error);
-            setError("Failed to load city data. Please try again.");
+        } catch (err) {
+            if (err.name !== "AbortError") {
+                console.error("Error loading options:", err);
+                setError("Failed to load city data. Please try again.");
+            };
+
             return { options: [] };
         } finally {
-            setLoading(false);
-        }
+            if (controllerRef.current === controller) {
+                setLoading(false);
+            };
+        };
     };
 
     const handleOnChange = (searchData) => {
@@ -106,25 +130,35 @@ const Search = ({ onSearchChange }) => {
 
     return (
         <div className={styles.search_container}>
-            <AsyncPaginate
-                className={styles.search_input}
-                classNamePrefix="select"
-                placeholder="Search for a city"
-                debounceTimeout={300}
-                value={search}
-                onChange={handleOnChange}
-                loadOptions={loadOptions}
-                noOptionsMessage={() => "No cities found"}
-                aria-label="Search for a city"
-                styles={customStyles}
-                isClearable={true}
-                menuIsOpen={menuOpen}
-                onInputChange={(value) => {
-                    setMenuOpen(value.length > 0);
-                    return value;
-                }}
-            />
-
+            {!AsyncPaginate ? (
+                <input
+                    ref={inputRef}
+                    className={styles.search_input}
+                    placeholder="Search for a city"
+                    onFocus={loadAsync}
+                    onInput={loadAsync}
+                    aria-label="Search for a city"
+                />
+            ) : (
+                <AsyncPaginate
+                    className={styles.search_input}
+                    classNamePrefix="select"
+                    placeholder="Search for a city"
+                    debounceTimeout={300}
+                    value={search}
+                    onChange={handleOnChange}
+                    loadOptions={loadOptions}
+                    noOptionsMessage={() => "No cities found"}
+                    aria-label="Search for a city"
+                    styles={customStyles}
+                    isClearable={true}
+                    menuIsOpen={menuOpen}
+                    onInputChange={(value) => {
+                        setMenuOpen(value.length > 0);
+                        return value;
+                    }}
+                />
+            )}
             {loading && <Spinner />}
             {error && <div className="error_message">{error}</div>}
         </div>
