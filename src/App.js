@@ -92,109 +92,84 @@ function App() {
 
   const handleUseMyLocation = () => {
     if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported by your browser.", {
-        position: "top-right",
-      });
+      toast.error("Geolocation is not supported by your browser.", { position: "top-right" });
       return;
     }
 
     if (!window.isSecureContext && window.location.hostname !== "localhost") {
-      toast.error(
-        "Geolocation requires HTTPS. Open the site over https://",
-        { position: "top-right" }
-      );
+      toast.error("Geolocation requires HTTPS. Open the site over https://", { position: "top-right" });
       return;
     }
 
-    const onSuccess = async (pos, source = "device") => {
-      const { latitude, longitude } = pos.coords;
-      console.log(`[geo] using coords from ${source}:`, {
-        latitude,
-        longitude,
-      });
+    let settled = false;
+    let ipTried = false;
+    let hiAccTried = false;
+
+    const finishWithCoords = async (coords, source) => {
+      if (settled) return;
+      settled = true;
+
+      const { latitude, longitude } = coords;
+      console.log(`[geo] using coords from ${source}:`, { latitude, longitude });
+
       const response = await fetchWeather(latitude, longitude, units);
-      if (response.error) {
+      if (response?.error) {
         toast.error(response.error, { position: "top-right" });
         return;
       }
-      const resolvedCity =
-        response.currentWeather?.name || "Current location";
-      toast.success(
-        `Weather data for ${resolvedCity} loaded successfully!`,
-        { position: "top-right" }
-      );
+
+      const resolvedCity = response.currentWeather?.name || "Current location";
+      toast.success(`Weather data for ${resolvedCity} loaded successfully!`, { position: "top-right" });
       setCurrentWeather({ city: resolvedCity, ...response.currentWeather });
       setForecast({ city: resolvedCity, ...response.forecast });
       setLastSearch({ value: `${latitude} ${longitude}`, label: resolvedCity });
     };
 
     const ipFallback = async () => {
+      if (settled || ipTried) return;
+      ipTried = true;
       try {
         const res = await fetch("https://ipapi.co/json/");
         const data = await res.json();
         if (data && data.latitude && data.longitude) {
-          toast.info("Using approximate location (by IP).", {
-            position: "top-right",
-          });
-          return onSuccess(
-            { coords: { latitude: data.latitude, longitude: data.longitude } },
-            "ip"
-          );
+          toast.info("Using approximate location (by IP).", { position: "top-right" });
+          return finishWithCoords({ latitude: data.latitude, longitude: data.longitude }, "ip");
         }
       } catch (e) {
         console.warn("[geo] IP fallback failed:", e);
-      };
+      }
+      if (!settled) {
+        toast.error("Location unavailable. You can search for a city instead.", { position: "top-right" });
+      }
+    };
 
-      toast.error(
-        "Location unavailable. You can search for a city instead.",
-        { position: "top-right" }
+    const tryHighAccuracy = () => {
+      if (settled || hiAccTried) return;
+      hiAccTried = true;
+      navigator.geolocation.getCurrentPosition(
+        (pos) => finishWithCoords(pos.coords, "device-hiacc"),
+        (err) => {
+          console.error("[geo] high-accuracy failed:", { code: err?.code, message: err?.message || "" });
+          ipFallback();
+        },
+        { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
       );
     };
 
-    const onError = (err, triedHighAccuracy = false) => {
-      console.error("Geolocation error:", {
-        code: err?.code,
-        message: err?.message,
-        err,
-      });
-      if (!triedHighAccuracy) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => onSuccess(pos, "device-hiacc"),
-          (e) => {
-            const id = navigator.geolocation.watchPosition(
-              (p) => { navigator.geolocation.clearWatch(id); onSuccess(p, "watch"); },
-              () => { },
-              { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
-            setTimeout(() => { navigator.geolocation.clearWatch(id); ipFallback(); }, 10000);
-          },
-          { enableHighAccuracy: true, timeout: 45000, maximumAge: 0 }
-        );
-        return;
-      }
-      ipFallback();
+    const onCoarseError = (err) => {
+      console.error("Geolocation error (coarse):", { code: err?.code, message: err?.message || "" });
+      tryHighAccuracy();
     };
 
-    if (navigator.permissions?.query) {
-      navigator.permissions
-        .query({ name: "geolocation" })
-        .then((p) => {
-          console.log("[geo] permission state:", p.state);
-          if (p.state === "denied") {
-            toast.error(
-              "Location permission is blocked. Using approximate location if available.",
-              { position: "top-right" }
-            );
-          }
-        })
-        .catch(() => { });
-    }
-
     navigator.geolocation.getCurrentPosition(
-      (pos) => onSuccess(pos, "device-coarse"),
-      (e) => onError(e, false),
-      { enableHighAccuracy: false, timeout: 20000, maximumAge: 600000 }
+      (pos) => finishWithCoords(pos.coords, "device-coarse"),
+      onCoarseError,
+      { enableHighAccuracy: false, timeout: 12000, maximumAge: 600000 }
     );
+
+    setTimeout(() => {
+      if (!settled) ipFallback();
+    }, 25000);
   };
 
   return (
