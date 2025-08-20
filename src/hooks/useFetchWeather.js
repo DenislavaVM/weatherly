@@ -37,7 +37,11 @@ const useFetchWeather = () => {
             setError(errorMessage);
             toast.error(errorMessage, { position: "top-right" });
             const level = err?.response ? "warn" : "error";
-            console[level]("API Error:", err);
+            console[level]("API Error:", {
+                message: err?.message,
+                status: err?.response?.status,
+                data: err?.response?.data,
+            });
             return { error: errorMessage };
         }
     };

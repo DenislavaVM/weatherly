@@ -56,13 +56,6 @@
     display: none;
 }
 
-.forecast__compact {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-
 .forecast__icon_small {
     width: 45px;
 }
@@ -140,8 +133,6 @@
 .forecast__list_item.active .forecast__toggle_icon {
     transform: rotate(180deg);
 }
-
-
 
 @media (max-width: 768px) {
     .forecast__grid_desktop {

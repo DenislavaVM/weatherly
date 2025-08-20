@@ -137,6 +137,7 @@ const Search = ({ onSearchChange }) => {
                     placeholder="Search for a city"
                     onFocus={loadAsync}
                     onInput={loadAsync}
+                    onBlur={() => setMenuOpen(false)}
                     aria-label="Search for a city"
                 />
             ) : (
@@ -153,6 +154,8 @@ const Search = ({ onSearchChange }) => {
                     styles={customStyles}
                     isClearable={true}
                     menuIsOpen={menuOpen}
+                    onMenuClose={() => setMenuOpen(false)}
+                    onBlur={() => setMenuOpen(false)}
                     onInputChange={(value) => {
                         setMenuOpen(value.length > 0);
                         return value;

@@ -13,7 +13,8 @@ export const fetchData = async (url, options = {}, retries = 5, signal, backoff 
 
         if (retries > 0) {
             await new Promise((r) => setTimeout(r, backoff));
-            return fetchData(url, options, retries - 1, signal, backoff * 2);
+            const nextBackoff = Math.min(backoff * 2, 8000);
+            return fetchData(url, options, retries - 1, signal, nextBackoff);
         };
 
         throw err;
