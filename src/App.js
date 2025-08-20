@@ -160,8 +160,15 @@ function App() {
       if (!triedHighAccuracy) {
         navigator.geolocation.getCurrentPosition(
           (pos) => onSuccess(pos, "device-hiacc"),
-          (e) => onError(e, true),
-          { enableHighAccuracy: true, timeout: 25000, maximumAge: 0 }
+          (e) => {
+            const id = navigator.geolocation.watchPosition(
+              (p) => { navigator.geolocation.clearWatch(id); onSuccess(p, "watch"); },
+              () => { },
+              { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+            setTimeout(() => { navigator.geolocation.clearWatch(id); ipFallback(); }, 10000);
+          },
+          { enableHighAccuracy: true, timeout: 45000, maximumAge: 0 }
         );
         return;
       }
