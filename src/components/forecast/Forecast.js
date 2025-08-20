@@ -11,17 +11,21 @@ const Forecast = ({ data }) => {
     }
 
     const grouped = data.list.reduce((acc, entry) => {
-        const date = format(parseISO(entry.dt_txt), "yyyy-MM-dd");
-        if (!acc[date]) acc[date] = [];
-        acc[date].push(entry);
+        const dateKey = format(parseISO(entry.dt_txt), "yyyy-MM-dd");
+        (acc[dateKey] ||= []).push(entry);
         return acc;
     }, {});
 
     const dailyForecasts = Object.entries(grouped)
-        .map(([date, items]) => ({
-            date,
-            item: items[Math.floor(items.length / 2)],
-        }))
+        .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+        .map(([date, items]) => {
+            const min = Math.min(...items.map(i => i.main.temp_min));
+            const max = Math.max(...items.map(i => i.main.temp_max));
+            const noon =
+                items.find(i => i.dt_txt.includes("12:00:00")) ||
+                items[Math.floor(items.length / 2)];
+            return { date, item: noon, min, max };
+        })
         .slice(0, 5);
 
     const toggleDetails = (index) => {
@@ -32,7 +36,7 @@ const Forecast = ({ data }) => {
         <>
             <label className={styles.forecast__title}>5-Day Forecast</label>
             <div className={styles.forecast__grid_desktop}>
-                {dailyForecasts.map(({ date, item }, index) => (
+                {dailyForecasts.map(({ date, item, min, max }, index) => (
                     <div
                         key={date}
                         className={`${styles.forecast__list_item} ${openIndex === index ? styles.active : ""}`}
@@ -60,7 +64,7 @@ const Forecast = ({ data }) => {
                                 {format(parseISO(item.dt_txt), "EEEE, MMM d")}
                             </span>
                             <span className={styles.forecast__temperature_range}>
-                                {Math.round(item.main.temp_min)}°C / {Math.round(item.main.temp_max)}°C
+                                {Math.round(min)}°C / {Math.round(max)}°C
                             </span>
                             <span className={styles.forecast__toggle_icon}>
                                 {openIndex === index ? <FaChevronUp /> : <FaChevronDown />}
