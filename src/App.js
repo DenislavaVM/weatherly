@@ -36,7 +36,7 @@ function App() {
   }, [darkMode]);
 
 
-  const handleOnSearchChange = async (searchData) => {
+  const handleOnSearchChange = async (searchData, unitsOverride = units) => {
     const [lat, lon] = searchData?.value?.split(" ") || [];
     if (!lat || !lon) {
       return;
@@ -44,7 +44,7 @@ function App() {
 
     setLastSearch(searchData);
 
-    const response = await fetchWeather(lat, lon, units);
+    const response = await fetchWeather(lat, lon, unitsOverride);
 
     if (response.error) {
       toast.error(response.error, { position: "top-right" });
@@ -65,30 +65,45 @@ function App() {
       toast.error("Geolocation is not supported by your browser.", { position: "top-right" });
       return;
     }
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude, longitude } = pos.coords;
-        const response = await fetchWeather(latitude, longitude, units);
-        if (response.error) {
-          toast.error(response.error, { position: "top-right" });
-          return;
-        }
-        const resolvedCity = response.currentWeather?.name || "Current location";
-        toast.success(`Weather data for ${resolvedCity} loaded successfully!`, { position: "top-right" });
-        setCurrentWeather({ city: resolvedCity, ...response.currentWeather });
-        setForecast({ city: resolvedCity, ...response.forecast });
-        setLastSearch({ value: `${latitude} ${longitude}`, label: resolvedCity });
-      },
-      (err) => {
-        const msg =
-          err.code === err.PERMISSION_DENIED
-            ? "Location permission denied."
-            : err.code === err.POSITION_UNAVAILABLE
-              ? "Location unavailable."
+    const onSuccess = async (pos) => {
+      const { latitude, longitude } = pos.coords;
+      const response = await fetchWeather(latitude, longitude, units);
+      if (response.error) {
+        toast.error(response.error, { position: "top-right" });
+        return;
+      }
+      const resolvedCity = response.currentWeather?.name || "Current location";
+      toast.success(`Weather data for ${resolvedCity} loaded successfully!`, { position: "top-right" });
+      setCurrentWeather({ city: resolvedCity, ...response.currentWeather });
+      setForecast({ city: resolvedCity, ...response.forecast });
+      setLastSearch({ value: `${latitude} ${longitude}`, label: resolvedCity });
+    };
+
+    const onError = (err, triedHighAccuracy = false) => {
+      console.error("Geolocation error:", err);
+      if (!triedHighAccuracy) {
+        navigator.geolocation.getCurrentPosition(
+          onSuccess,
+          (e) => onError(e, true),
+          { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+        );
+        return;
+      }
+      const msg =
+        err.code === err.PERMISSION_DENIED
+          ? "Location permission denied."
+          : err.code === err.POSITION_UNAVAILABLE
+            ? "Location unavailable."
+            : err.code === err.TIMEOUT
+              ? "Getting your location timed out."
               : "Failed to get your location.";
-        toast.error(msg, { position: "top-right" });
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      toast.error(msg, { position: "top-right" });
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      onSuccess,
+      (e) => onError(e, false),
+      { enableHighAccuracy: false, timeout: 20000, maximumAge: 600000 }
     );
   };
 
@@ -97,7 +112,7 @@ function App() {
     setUnits(next);
     localStorage.setItem("units", next);
     if (lastSearch?.value) {
-      handleOnSearchChange(lastSearch);
+      handleOnSearchChange(lastSearch, next);
     } else if (currentWeather?.coord) {
       const { lat, lon } = currentWeather.coord;
       fetchWeather(lat, lon, next).then((response) => {
