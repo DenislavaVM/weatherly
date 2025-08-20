@@ -20,6 +20,7 @@ function App() {
   const [units, setUnits] = useState(() => {
     return localStorage.getItem("units") || "metric";
   });
+  const unitSymbol = units === "imperial" ? "°F" : "°C";
 
   const toggleDarkMode = () => {
     const newMode = !darkMode;
@@ -38,10 +39,7 @@ function App() {
     );
   }, [darkMode]);
 
-  const handleOnSearchChange = async (
-    searchData,
-    unitsOverride = units
-  ) => {
+  const handleOnSearchChange = async (searchData, unitsOverride = units) => {
     const [lat, lon] = searchData?.value?.split(" ") || [];
     if (!lat || !lon) {
       return;
@@ -56,12 +54,15 @@ function App() {
       return;
     }
 
+    const resolvedCity =
+      searchData?.label || response.currentWeather?.name || "Current location";
+
     toast.success(
-      `Weather data for ${searchData.label} loaded successfully!`,
+      `Weather data for ${resolvedCity} loaded successfully!`,
       { position: "top-right" }
     );
-    setCurrentWeather({ city: searchData.label, ...response.currentWeather });
-    setForecast({ city: searchData.label, ...response.forecast });
+    setCurrentWeather({ city: resolvedCity, ...response.currentWeather });
+    setForecast({ city: resolvedCity, ...response.forecast });
   };
 
   const toggleUnits = () => {
@@ -95,7 +96,7 @@ function App() {
         position: "top-right",
       });
       return;
-    };
+    }
 
     if (!window.isSecureContext && window.location.hostname !== "localhost") {
       toast.error(
@@ -103,7 +104,7 @@ function App() {
         { position: "top-right" }
       );
       return;
-    };
+    }
 
     const onSuccess = async (pos, source = "device") => {
       const { latitude, longitude } = pos.coords;
@@ -142,7 +143,8 @@ function App() {
         }
       } catch (e) {
         console.warn("[geo] IP fallback failed:", e);
-      }
+      };
+
       toast.error(
         "Location unavailable. You can search for a city instead.",
         { position: "top-right" }
@@ -163,15 +165,6 @@ function App() {
         );
         return;
       }
-      const msg =
-        err?.code === err?.PERMISSION_DENIED
-          ? "Location permission denied."
-          : err?.code === err?.POSITION_UNAVAILABLE
-            ? "Location unavailable."
-            : err?.code === err?.TIMEOUT
-              ? "Getting your location timed out."
-              : "Failed to get your location.";
-      toast.error(msg, { position: "top-right" });
       ipFallback();
     };
 
@@ -182,7 +175,7 @@ function App() {
           console.log("[geo] permission state:", p.state);
           if (p.state === "denied") {
             toast.error(
-              "Location permission is blocked. Enable it in browser settings.",
+              "Location permission is blocked. Using approximate location if available.",
               { position: "top-right" }
             );
           }
@@ -211,11 +204,20 @@ function App() {
               display: "flex",
               gap: "12px",
               flexWrap: "wrap",
+              justifyContent: "center",
             }}
           >
-            <button onClick={handleUseMyLocation}>Use my location</button>
-            <button onClick={toggleUnits}>
-              Switch to {units === "metric" ? "°F" : "°C"}
+            <button className="retry_button" onClick={handleUseMyLocation}>
+              Use my location
+            </button>
+            <button
+              className="retry_button"
+              onClick={toggleUnits}
+              aria-pressed={units === "imperial"}
+              aria-label="Toggle units"
+              title={`Switch to ${units === "metric" ? "°F / mph" : "°C / m/s"}`}
+            >
+              Switch to {units === "metric" ? "°F / mph" : "°C / m/s"}
             </button>
           </div>
         </section>
@@ -250,10 +252,20 @@ function App() {
         <section
           style={{ display: "flex", flexDirection: "column", gap: "30px" }}
         >
-          {currentWeather && <CurrentWeather data={currentWeather} />}
+          {currentWeather && (
+            <CurrentWeather
+              data={currentWeather}
+              units={units}
+              unitSymbol={unitSymbol}
+            />
+          )}
           {forecast && (
             <div className="forecast__grid">
-              <Forecast data={forecast} />
+              <Forecast
+                data={forecast}
+                units={units}
+                unitSymbol={unitSymbol}
+              />
             </div>
           )}
         </section>
