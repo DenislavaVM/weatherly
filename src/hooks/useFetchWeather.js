@@ -6,6 +6,19 @@ const useFetchWeather = () => {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
 
+    const parseFetchError = (err) => {
+        if (err?.name === "AbortError") return "Request aborted.";
+        if (typeof err?.status === "number") {
+            if (err.status === 404) return "City not found. Please try another city.";
+            if (err.status === 429) return "API request limit exceeded. Try again later.";
+            if (err.status >= 500) return "Upstream service error. Please try again.";
+        }
+        if (/NetworkError|Failed to fetch|network/i.test(err?.message || "")) {
+            return "Network issue. Check your connection.";
+        }
+        return err?.message || "Error fetching data. Please try again.";
+    };
+
     const fetchWeather = async (lat, lon, units = "metric") => {
         setError(null);
         setLoading(true);
@@ -19,31 +32,16 @@ const useFetchWeather = () => {
             return { currentWeather, forecast };
         } catch (err) {
             setLoading(false);
-
-            let errorMessage = "Something went wrong. Please try again.";
-
-            if (err.response) {
-                if (err.response.status === 404) {
-                    errorMessage = "City not found. Please try another city.";
-                } else if (err?.response?.status === 429) {
-                    errorMessage = "API request limit exceeded. Try again later.";
-                } else {
-                    errorMessage = "Error fetching data. Please try again.";
-                }
-            } else if (err?.request) {
-                errorMessage = "Network issue. Check your connection.";
-            }
-
+            const errorMessage = parseFetchError(err);
             setError(errorMessage);
             toast.error(errorMessage, { position: "top-right" });
-            const level = err?.response ? "warn" : "error";
-            console[level]("API Error:", {
+            console.error("API Error:", {
                 message: err?.message,
-                status: err?.response?.status,
-                data: err?.response?.data,
+                status: err?.status,
+                body: err?.body,
             });
             return { error: errorMessage };
-        }
+        };
     };
 
     return { fetchWeather, error, loading };

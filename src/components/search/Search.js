@@ -34,9 +34,7 @@ const customStyles = {
     }),
     option: (base, state) => ({
         ...base,
-        backgroundColor: state.isFocused
-            ? "rgba(30, 144, 255, 0.15)"
-            : "transparent",
+        backgroundColor: state.isFocused ? "rgba(30, 144, 255, 0.15)" : "transparent",
         color: "var(--text-color)",
         padding: "12px 16px",
         fontSize: "0.95rem",
@@ -75,7 +73,7 @@ const Search = ({ onSearchChange }) => {
     };
 
     const loadOptions = async (inputValue) => {
-        if (!inputValue.trim()) {
+        if (!inputValue.trim() || inputValue.trim().length < 2) {
             controllerRef.current?.abort();
             return { options: [] };
         };
@@ -100,13 +98,11 @@ const Search = ({ onSearchChange }) => {
                     isDisabled: city.name === "No Cities Found",
                 })),
             };
-
         } catch (err) {
             if (err.name !== "AbortError") {
                 console.error("Error loading options:", err);
                 setError("Failed to load city data. Please try again.");
             };
-
             return { options: [] };
         } finally {
             if (controllerRef.current === controller) {
