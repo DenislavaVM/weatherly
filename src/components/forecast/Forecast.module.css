@@ -105,12 +105,12 @@
 }
 
 .forecast__details_item label:first-child {
-    color: var(--secondary-text);
+    color: var(--text-secondary);
     font-weight: 500;
 }
 
 .forecast__details_item label:last-child {
-    color: var(--primary-text);
+    color: var(--text-color);
     font-weight: bold;
 }
 

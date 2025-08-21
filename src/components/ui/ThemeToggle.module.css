@@ -25,7 +25,7 @@
     height: 16px;
 }
 
-[data-theme="dark"] .theme-toggle svg {
+[data-theme="dark"] .theme_toggle svg {
     transform: rotate(180deg);
 }
 

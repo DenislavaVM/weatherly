@@ -27,7 +27,7 @@ const CurrentWeather = ({ data, unitSymbol = "°C", units = "metric" }) => {
                 />
             </div>
             <div className={styles.weather__bottom}>
-                <p className="weather__temperature">{Math.round(data.main.temp)}{unitSymbol}</p>
+               <p className={styles.weather__temperature}>{Math.round(data.main.temp)}{unitSymbol}</p>
                 <div className={styles.weather__details}>
                     <div className={styles.weather__details_row}>
                         <span className={styles.weather__details_label}>Details:</span>
