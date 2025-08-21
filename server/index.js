@@ -7,13 +7,19 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+if (!process.env.OPENWEATHER_API_KEY) {
+    console.warn("[WARN] OPENWEATHER_API_KEY is not set.");
+};
+
+if (!process.env.RAPIDAPI_KEY) {
+    console.warn("[WARN] RAPIDAPI_KEY is not set (used by /api/cities).");
+};
+
 const allowedOrigins = new Set([
     "https://weatherly-tau-three.vercel.app",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]);
-
-const vercelPreview = /^https?:\/\/([a-z0-9-]+\.)*vercel\.app$/i;
 
 app.use((req, _res, next) => {
     console.log("[CORS] Origin:", req.headers.origin, "Path:", req.path);
@@ -26,18 +32,16 @@ const corsOptionsDelegate = (req, callback) => {
     if (!origin) {
         return callback(null, {
             origin: true,
-            methods: ["GET", "OPTIONS"],
-            allowedHeaders: ["Content-Type", "Authorization"],
+            methods: ["GET", "OPTIONS", "HEAD"],
             maxAge: 86400,
             optionsSuccessStatus: 204,
         });
     };
 
-    const isAllowed = allowedOrigins.has(origin) || vercelPreview.test(origin);
+    const isAllowed = allowedOrigins.has(origin);
     callback(null, {
         origin: isAllowed ? origin : false,
-        methods: ["GET", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization"],
+        methods: ["GET", "OPTIONS", "HEAD"],
         credentials: false,
         maxAge: 86400,
         optionsSuccessStatus: 204,
@@ -53,46 +57,61 @@ app.use(express.static(path.join(__dirname, "../build")));
 const handleError = (res, error, fallbackMessage) => {
     console.error(error?.message || error);
     const status = error?.response?.status || 500;
-    const message = error?.response?.data?.message || fallbackMessage;
+    const raw = error?.response?.data?.message ?? error?.message ?? fallbackMessage;
+    const message = typeof raw === "string" ? raw : fallbackMessage;
     res.status(status).json({ error: message });
 };
 
 app.get("/api/weather", async (req, res) => {
     const { lat, lon, units } = req.query;
-    if (!lat || !lon) {
-        return res.status(400).json({ error: "Latitude and longitude are required" });
-    }
+    const latN = Number(lat), lonN = Number(lon);
+    if (
+        !Number.isFinite(latN) ||
+        !Number.isFinite(lonN) ||
+        latN < -90 || latN > 90 ||
+        lonN < -180 || lonN > 180
+    ) {
+        return res.status(400).json({ error: "Invalid coordinates" });
+    };
 
     try {
         const response = await axios.get("https://api.openweathermap.org/data/2.5/weather", {
             params: {
-                lat,
-                lon,
+                lat: latN,
+                lon: lonN,
                 units: units === "imperial" ? "imperial" : "metric",
                 appid: process.env.OPENWEATHER_API_KEY,
             },
+            timeout: 10000,
         });
 
         res.json(response.data);
     } catch (error) {
         handleError(res, error, "Failed to fetch weather data");
-    }
+    };
 });
 
 app.get("/api/forecast", async (req, res) => {
     const { lat, lon, units } = req.query;
-    if (!lat || !lon) {
-        return res.status(400).json({ error: "Latitude and longitude are required" });
-    }
+    const latN = Number(lat), lonN = Number(lon);
+    if (
+        !Number.isFinite(latN) ||
+        !Number.isFinite(lonN) ||
+        latN < -90 || latN > 90 ||
+        lonN < -180 || lonN > 180
+    ) {
+        return res.status(400).json({ error: "Invalid coordinates" });
+    };
 
     try {
         const response = await axios.get("https://api.openweathermap.org/data/2.5/forecast", {
             params: {
-                lat,
-                lon,
+                lat: latN,
+                lon: lonN,
                 units: units === "imperial" ? "imperial" : "metric",
                 appid: process.env.OPENWEATHER_API_KEY,
             },
+            timeout: 10000,
         });
 
         res.json(response.data);
@@ -118,6 +137,7 @@ app.get("/api/cities", async (req, res) => {
                 minPopulation: 1000000,
                 limit: 10,
             },
+            timeout: 10000,
         });
 
         if (!response.data || !Array.isArray(response.data.data)) {
