@@ -23,6 +23,7 @@ const CurrentWeather = ({ data, unitSymbol = "°C", units = "metric" }) => {
                     alt={`Weather icon showing ${data.weather[0].description}`}
                     className={styles.weather__icon}
                     src={`https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`}
+                    loading="lazy"
                 />
             </div>
             <div className={styles.weather__bottom}>

@@ -3,6 +3,9 @@ const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
 const path = require("path");
+const helmet = require("helmet");
+const compression = require("compression");
+const rateLimit = require("express-rate-limit");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -48,18 +51,33 @@ const corsOptionsDelegate = (req, callback) => {
     });
 };
 
+app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(compression());
 app.use(cors(corsOptionsDelegate));
 app.options("/api/*", cors(corsOptionsDelegate));
+const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 300 });
+app.use("/api/", limiter);
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "../build")));
+app.use(
+    express.static(path.join(__dirname, "../build"), {
+        maxAge: "7d",
+        setHeaders: (res, filePath) => {
+            if (filePath.endsWith(".html")) {
+                res.setHeader("Cache-Control", "no-cache");
+            } else {
+                res.setHeader("Cache-Control", "public, max-age=604800, immutable");
+            };
+        },
+    }),
+);
 
 const handleError = (res, error, fallbackMessage) => {
     console.error(error?.message || error);
     const status = error?.response?.status || 500;
-    const raw = error?.response?.data?.message ?? error?.message ?? fallbackMessage;
-    const message = typeof raw === "string" ? raw : fallbackMessage;
-    res.status(status).json({ error: message });
+    const code = error?.code || error?.response?.data?.cod || "SERVER_ERROR";
+    const message = error?.response?.data?.message || fallbackMessage;
+    res.status(status).json({ error: { code, message } });
 };
 
 app.get("/api/weather", async (req, res) => {
@@ -71,7 +89,7 @@ app.get("/api/weather", async (req, res) => {
         latN < -90 || latN > 90 ||
         lonN < -180 || lonN > 180
     ) {
-        return res.status(400).json({ error: "Invalid coordinates" });
+        return res.status(400).json({ error: { code: "INVALID_COORDS", message: "Invalid coordinates" } });
     };
 
     try {
@@ -100,7 +118,7 @@ app.get("/api/forecast", async (req, res) => {
         latN < -90 || latN > 90 ||
         lonN < -180 || lonN > 180
     ) {
-        return res.status(400).json({ error: "Invalid coordinates" });
+        return res.status(400).json({ error: { code: "INVALID_COORDS", message: "Invalid coordinates" } });
     };
 
     try {
@@ -122,8 +140,12 @@ app.get("/api/forecast", async (req, res) => {
 
 app.get("/api/cities", async (req, res) => {
     const { query } = req.query;
+    const DEFAULT_MIN_POP = Number(process.env.MIN_CITY_POP || 200000);
+    const userMin = Number(req.query.minPop);
+    const minPopulation = Number.isFinite(userMin) && userMin >= 0 ? userMin : DEFAULT_MIN_POP;
+
     if (!query) {
-        return res.status(400).json({ error: "City query is required" });
+        return res.status(400).json({ error: { code: "MISSING_QUERY", message: "City query is required" } });
     }
 
     try {
@@ -134,14 +156,14 @@ app.get("/api/cities", async (req, res) => {
             },
             params: {
                 namePrefix: query,
-                minPopulation: 1000000,
+                minPopulation,
                 limit: 10,
             },
             timeout: 10000,
         });
 
         if (!response.data || !Array.isArray(response.data.data)) {
-            return res.status(500).json({ error: "Unexpected API response format" });
+            return res.status(500).json({ error: { code: "BAD_UPSTREAM", message: "Unexpected API response format" } });
         }
 
         res.json(response.data.data);
