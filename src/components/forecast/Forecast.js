@@ -104,7 +104,7 @@ const Forecast = ({ data, unitSymbol = "°C", units = "metric" }) => {
                                     </div>
                                     <div className={styles.forecast__details_item}>
                                         <label>Sea Level:</label>
-                                        <label>{item.main.sea_level ? `${item.main.sea_level} m` : "N/A"}</label>
+                                        <label>{item.main.sea_level != null ? `${item.main.sea_level} m` : "N/A"}</label>
                                     </div>
                                     <div className={styles.forecast__details_item}>
                                         <label>Feels Like:</label>

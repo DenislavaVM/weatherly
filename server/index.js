@@ -24,8 +24,18 @@ const allowedOrigins = new Set([
     "http://127.0.0.1:3000",
 ]);
 
-app.use((req, _res, next) => {
-    console.log("[CORS] Origin:", req.headers.origin, "Path:", req.path);
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (process.env.NODE_ENV === "production") {
+        try {
+            const host = origin ? new URL(origin).hostname : "∅";
+            console.log("[CORS]", { host, path: req.path });
+        } catch {
+            console.log("[CORS]", { host: "invalid", path: req.path });
+        };
+    } else {
+        console.log("[CORS] Origin:", origin, "Path:", req.path);
+    };
     next();
 });
 

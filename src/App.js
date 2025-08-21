@@ -194,10 +194,11 @@ function App() {
               justifyContent: "center",
             }}
           >
-            <button className="retry_button" onClick={handleUseMyLocation}>
+            <button type="button" className="retry_button" onClick={handleUseMyLocation}>
               Use my location
             </button>
             <button
+              type="button"
               className="retry_button"
               onClick={toggleUnits}
               aria-pressed={units === "imperial"}
@@ -220,6 +221,7 @@ function App() {
             <p>{error}</p>
             {lastSearch && (
               <button
+                type="button"
                 className="retry_button"
                 onClick={() => handleOnSearchChange(lastSearch)}
               >
